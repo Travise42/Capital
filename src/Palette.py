@@ -6,7 +6,6 @@ hovered_button = (160, 160, 200)
 pressed_button = (60, 60, 100)
 
 text = (220, 220, 220)
-pressed_text = (220, 220, 220)
 
 success = (240, 220, 0)
 invalid = (230, 80, 80)

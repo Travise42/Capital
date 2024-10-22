@@ -2,7 +2,6 @@
 import time
 import random
 
-initial_time = time.time()
 
 def create_board(board_size: int) -> list[list[int]]:
     """ Return an empty board with 'board_size' rows and columns.
@@ -15,11 +14,13 @@ def create_board(board_size: int) -> list[list[int]]:
         raise ValueError
     return [[0 for column in range(board_size)] for row in range(board_size)]
     
+
 def print_board(board: list[list[int]]) -> None:
     """ Print out an array showing the board more clearly.
     """
     
     print(str(board).replace("], ", "]\n")[1:-1] + "\n")
+
 
 def spread_city_to(board: list[list[int]], column: int, row: int, city: int) -> bool:
     """ Change an empty space into a city as long as it is on 'board'.
@@ -34,6 +35,7 @@ def spread_city_to(board: list[list[int]], column: int, row: int, city: int) -> 
     
     board[row][column] = city
     return True
+
 
 def spread_cities(board: list[list[int]]) -> None:
     """ Change an empty space next to every city space wthin 'board' into that city type.
@@ -55,6 +57,7 @@ def spread_cities(board: list[list[int]]) -> None:
             if spread_city_to(board, column, row + dir, board[row][column]):
                 continue
             spread_city_to(board, column, row - dir, board[row][column])
+
 
 def create_capitals(board: list[list[int]]) -> list[tuple[int, int]]:
     """ Creates positions for capitals until a valid orientation is created using recursion.
@@ -89,7 +92,8 @@ def create_capitals(board: list[list[int]]) -> list[tuple[int, int]]:
         spread_cities(board)
                 
     return capitals
-   
+
+
 def get_cities(board: list[list[int]]) -> list[list[tuple[int, int]]]:
     """ Returns a list containing a list for each city that contains the
     column and row of each square within the city.
@@ -101,6 +105,7 @@ def get_cities(board: list[list[int]]) -> list[list[tuple[int, int]]]:
             cities[board[row][column] - 1].append((column, row))
         
     return cities
+
 
 def try_capital(solutions: list[int], board: list[list[int]], cities: list[list[tuple[int, int]]],
                 cap: int, capitals: list[tuple[int, int]], depth: int) -> None:
@@ -129,7 +134,8 @@ def try_capital(solutions: list[int], board: list[list[int]], cities: list[list[
         else:
             # Case: This capital is in a valid position
             try_capital(solutions, board, cities, cap, capitals + [(column, row)], depth + 1)
-            
+
+
 def get_solutions(board: list[list[int]]) -> int:
     """ Returns the amount of possible solutions to 'board'.
     """
@@ -139,7 +145,8 @@ def get_solutions(board: list[list[int]]) -> int:
     try_capital(solutions, board, sorted(get_cities(board), key=len), 0, [], 0)
     
     return solutions[0]
-            
+
+      
 def has_one_solutions(board: list[list[int]]) -> bool:
     """ Returns True iff there is more than 1 solution.
     """
@@ -149,6 +156,7 @@ def has_one_solutions(board: list[list[int]]) -> bool:
     try_capital(solutions, board, sorted(get_cities(board), key=len), 2, [], 0)
     
     return solutions[0] == 1
+
 
 def create_single_solution_board(board_size: int) -> list[list[int]]:
     """ Return a new board with only one solution
@@ -160,7 +168,10 @@ def create_single_solution_board(board_size: int) -> list[list[int]]:
         if has_one_solutions(board):
             return board
 
+
 if __name__ == "__main__":
+    initial_time = time.time()
+    
     board = create_single_solution_board(board_size=10)
     
     print_board(board)
