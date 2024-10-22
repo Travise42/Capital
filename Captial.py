@@ -19,7 +19,7 @@ def print_board(board: list[list[int]]) -> None:
     """ Print out an array showing the board more clearly.
     """
     
-    print(str(board).replace("], ", "]\n")[1:-1])
+    print(str(board).replace("], ", "]\n")[1:-1] + "\n")
 
 def spread_city_to(board: list[list[int]], column: int, row: int, city: int) -> bool:
     """ Change an empty space into a city as long as it is on 'board'.
@@ -61,22 +61,24 @@ def create_capitals(board: list[list[int]]) -> list[tuple[int, int]]:
     """
     
     # Create a valid combination of capitals that wont interfere one another
-    #TODO optimize by going backwards
     capitals = []
-    
-    last_column = -2
-    taken_columns = []
-    for row in range(len(board)):
-        open_columns = [i for i in range(len(board))
-                        if i not in taken_columns
-                        and (last_column + 1 < i or i < last_column - 1)]
+    invalid_locations = [[] for _ in range(len(board))]
+    while len(capitals) < len(board):
+        last_column = -2 if not len(capitals) else capitals[-1][0]
+        open_columns = [col for col in range(len(board))
+                        if col not in [i[0] for i in capitals]
+                        and (abs(last_column - col) > 1)
+                        and col not in invalid_locations[len(capitals)]]
         if len(open_columns) == 0:
-            # Not a valid combination of crowns so retry
-            return create_capitals(board)
-        column = random.choice(open_columns)
-        last_column = column
-        taken_columns.append(column)
-        capitals.append((column, row))
+            # Not a valid combination of crowns so go back
+            invalid_locations[len(capitals) - 1].append(last_column)
+            invalid_locations[len(capitals)].clear()
+            capitals.pop()
+            continue
+        capitals.append((random.choice(open_columns), len(capitals)))
+    
+    # Optional to remove exploiting each color having a capital on a predefined row
+    random.shuffle(capitals)
         
     # Add the capitals to the empty board
     for i, (column, row) in enumerate(capitals):
@@ -101,7 +103,7 @@ def get_cities(board: list[list[int]]) -> list[list[tuple[int, int]]]:
     return cities
 
 def try_capital(solutions: list[int], board: list[list[int]], cities: list[list[tuple[int, int]]],
-                capitals: list[tuple[int, int]], depth: int) -> None:
+                cap: int, capitals: list[tuple[int, int]], depth: int) -> None:
     """ Increases the first element in 'solutions' by the amount of possible solutions to 'board'.
     
     Prerequisites:
@@ -110,7 +112,7 @@ def try_capital(solutions: list[int], board: list[list[int]], cities: list[list[
     """
     
     # End the recurssion after two possibilities are found
-    if solutions[0] > 1:
+    if cap and solutions[0] >= cap:
         return
     
     # Found a possible solution! Try to find another
@@ -126,7 +128,7 @@ def try_capital(solutions: list[int], board: list[list[int]], cities: list[list[
                 break
         else:
             # Case: This capital is in a valid position
-            try_capital(solutions, board, cities, capitals + [(column, row)], depth + 1)
+            try_capital(solutions, board, cities, cap, capitals + [(column, row)], depth + 1)
             
 def get_solutions(board: list[list[int]]) -> int:
     """ Returns the amount of possible solutions to 'board'.
@@ -134,18 +136,26 @@ def get_solutions(board: list[list[int]]) -> int:
     
     # Start recursion loop
     solutions = [0]
-    try_capital(solutions, board, sorted(get_cities(board), key=len), [], 0)
+    try_capital(solutions, board, sorted(get_cities(board), key=len), 0, [], 0)
     
     return solutions[0]
+            
+def has_one_solutions(board: list[list[int]]) -> bool:
+    """ Returns True iff there is more than 1 solution.
+    """
+    
+    # Start recursion loop
+    solutions = [0]
+    try_capital(solutions, board, sorted(get_cities(board), key=len), 2, [], 0)
+    
+    return solutions[0] == 1
 
-i = 0
-while i < 100 or solutions != 1:
-    board = create_board(board_size=12)
+while True:
+    board = create_board(board_size=10)
     capitals = create_capitals(board)
-    solutions = get_solutions(board)
-    i += 1
+    if has_one_solutions(board):
+        break
 
 print_board(board)
-print("Solutions: " + str(solutions))
-
+print("Solutions: 1")
 print("Time elapsed: " + str(time.time() - initial_time))
