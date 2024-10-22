@@ -13,7 +13,7 @@ def create_board(board_size: int) -> list[list[int]]:
     
     if board_size < 4:
         raise ValueError
-    return [[-1 for column in range(board_size)] for row in range(board_size)]
+    return [[0 for column in range(board_size)] for row in range(board_size)]
     
 def print_board(board: list[list[int]]) -> None:
     """ Print out an array showing the board more clearly.
@@ -25,10 +25,11 @@ def spread_city_to(board: list[list[int]], column: int, row: int, city: int) -> 
     """ Change an empty space into a city as long as it is on 'board'.
     """
     
-    if not (0 <= column < len(board) and 0 <= row < len(board)):
+    ON_THE_BOARD = 0 <= column < len(board) and 0 <= row < len(board)
+    if not ON_THE_BOARD:
         return False
     
-    if board[row][column] + 1:
+    if board[row][column]:
         return False
     
     board[row][column] = city
@@ -41,7 +42,7 @@ def spread_cities(board: list[list[int]]) -> None:
     for row in range(len(board)):
         for column in range(len(board)):
             # Ignore empty spaces
-            if not board[row][column] + 1:
+            if not board[row][column]:
                 continue
             
             dir = random.choice([-1, 1])
@@ -59,6 +60,8 @@ def create_capitals(board: list[list[int]]) -> list[tuple[int, int]]:
     """ Creates positions for capitals until a valid orientation is created using recursion.
     """
     
+    # Create a valid combination of capitals that wont interfere one another
+    #TODO optimize by going backwards
     capitals = []
     
     last_column = -2
@@ -68,16 +71,19 @@ def create_capitals(board: list[list[int]]) -> list[tuple[int, int]]:
                         if i not in taken_columns
                         and (last_column + 1 < i or i < last_column - 1)]
         if len(open_columns) == 0:
+            # Not a valid combination of crowns so retry
             return create_capitals(board)
         column = random.choice(open_columns)
         last_column = column
         taken_columns.append(column)
         capitals.append((column, row))
         
+    # Add the capitals to the empty board
     for i, (column, row) in enumerate(capitals):
-        board[row][column] = i
-        
-    while not all(column + 1 for row in board for column in row):
+        board[row][column] = i + 1
+    
+    # Create cities around the capitals
+    while not all(square for row in board for square in row):
         spread_cities(board)
                 
     return capitals
@@ -90,7 +96,7 @@ def get_cities(board: list[list[int]]) -> list[list[tuple[int, int]]]:
     cities = [[] for city in range(len(board))]
     for row in range(len(board)):
         for column in range(len(board)):
-            cities[board[row][column]].append((column, row))
+            cities[board[row][column] - 1].append((column, row))
         
     return cities
 
@@ -103,37 +109,42 @@ def try_capital(solutions: list[int], board: list[list[int]], cities: list[list[
         depth = 0
     """
     
-    # Found a possible solution!
+    # End the recurssion after two possibilities are found
+    if solutions[0] > 1:
+        return
+    
+    # Found a possible solution! Try to find another
     if depth == len(board):
         solutions[0] += 1
         return
     
+    # Guess and check every valid position in this city
     for column, row in cities[depth]:
         for cap_column, cap_row in capitals:
-            # Check to see if this capital is valid
+            # Check to see if this capital's position is interfering with another capital's positon
             if column == cap_column or row == cap_row or (-1 <= column - cap_column <= 1 and -1 <= row - cap_row <= 1):
                 break
         else:
-            # Case: This capital is valid
+            # Case: This capital is in a valid position
             try_capital(solutions, board, cities, capitals + [(column, row)], depth + 1)
             
 def get_solutions(board: list[list[int]]) -> int:
     """ Returns the amount of possible solutions to 'board'.
     """
     
+    # Start recursion loop
     solutions = [0]
-    try_capital(solutions, board, get_cities(board), [], 0)
+    try_capital(solutions, board, sorted(get_cities(board), key=len), [], 0)
     
     return solutions[0]
 
 i = 0
 while i < 100 or solutions != 1:
-    board = create_board(10)
+    board = create_board(board_size=12)
     capitals = create_capitals(board)
     solutions = get_solutions(board)
     i += 1
 
-print(len(board))
 print_board(board)
 print("Solutions: " + str(solutions))
 
