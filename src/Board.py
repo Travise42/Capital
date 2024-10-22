@@ -150,12 +150,19 @@ def has_one_solutions(board: list[list[int]]) -> bool:
     
     return solutions[0] == 1
 
-while True:
-    board = create_board(board_size=10)
-    capitals = create_capitals(board)
-    if has_one_solutions(board):
-        break
+def create_single_solution_board(board_size: int) -> list[list[int]]:
+    """ Return a new board with only one solution
+    """
+    
+    while True:
+        board = create_board(board_size)
+        create_capitals(board)
+        if has_one_solutions(board):
+            return board
 
-print_board(board)
-print("Solutions: 1")
-print("Time elapsed: " + str(time.time() - initial_time))
+if __name__ == "__main__":
+    board = create_single_solution_board(board_size=10)
+    
+    print_board(board)
+    print("Solutions: 1")
+    print("Time elapsed: " + str(time.time() - initial_time))
