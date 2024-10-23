@@ -253,7 +253,7 @@ class Capital:
                 pygame.draw.rect(self.board_surf, palette.board_border,
                                 (x, y, self.square_size + 1, self.square_size + 1), 2)
                 
-                self.draw_space_elements(column, row, x, y)
+                self.draw_space_elements(column, row)
 
 
     def draw_space_elements(self, column: int, row: int) -> None:
