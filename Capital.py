@@ -305,6 +305,9 @@ class Capital:
 
 
     def restart(self) -> None:
+        """ Reset variables to initial values is delay is over.
+        """
+        
         if self.restart_delay > 0:
             self.restart_delay -= 1
             return
@@ -320,6 +323,9 @@ class Capital:
         
         
     def draw_home_screen(self) -> None:
+        """ Draw background and buttons.
+        """
+        
         self.win.fill(palette.background)
         pygame.draw.rect(self.win, palette.contrast, (250, 300, 500, 200), 0, 25)
         
@@ -329,18 +335,22 @@ class Capital:
         
     
     def draw_game_screen(self) -> None:
+        """ Draw background and board.
+        """
+        
         self.win.fill(palette.background)
         self.win.blit(self.board_surf, ((Capital.WIDTH - Capital.BOARD_SIZE) / 2, (Capital.HEIGHT - Capital.BOARD_SIZE) / 2))
         
         
     def handle_success(self) -> None:
+        """ Go to end screen if game is over.
+        """
+        
         if self.success:
             self.screen = constants.END
             self.restart_delay = 1
         if self.valid and self.found_capitals == len(self.board):
             self.success = True
-            
-            print(self.valid)
                 
 
 if __name__ == "__main__":
