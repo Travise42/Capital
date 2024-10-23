@@ -13,7 +13,7 @@ class Capital:
     
     WIDTH, HEIGHT = 1000, 800
     BOARD_SIZE = 600
-    FPS = 30
+    FPS = 60
 
     def __init__(self):
         # Create window
@@ -82,24 +82,29 @@ class Capital:
         for event in pygame.event.get():
             
             # Exit the application
+            
             if event.type == pygame.QUIT:
                 self.running = False
                 
             # Hover over spaces
+            
             elif event.type == pygame.MOUSEMOTION:
                 if self.screen == constants.GAME:
                     self.drag_crosses()
             
             # Click spaces
+            
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if self.screen == constants.GAME:
                     self.interact_with_the_board()
             
             # Click buttons
+            
             elif event.type == pygame.MOUSEBUTTONUP:
                 self.initial_type = None
                 
                 # Starting a new game
+                
                 if self.screen == constants.HOME:
                     if self.easy_button.pressed:
                         self.start_game(random.randint(4, 6))
@@ -109,6 +114,7 @@ class Capital:
                         self.start_game(random.randint(10, 12))
                 
                 # Returning to the menu
+                
                 elif self.screen == constants.END:
                     self.restart()
 
@@ -126,9 +132,13 @@ class Capital:
         """ Create a new board and change the screen to constants.GAME.
         """
         
+        # Create new board
+        
         self.board = Board.create_single_solution_board(board_size)
         self.screen = constants.GAME
         self.marked_board = [[0 for i in range(len(self.board))] for j in range(len(self.board))]
+        
+        # Create variables and surfaces
         
         self.square_size = Capital.BOARD_SIZE / len(self.board)
         self.highlight = pygame.Surface((self.square_size, self.square_size), pygame.SRCALPHA)
@@ -147,8 +157,11 @@ class Capital:
             for column in range(len(self.board)):
                 
                 # Only alter spaces with the same state as the one initially clicked
+                
                 if self.marked_board[row][column] != self.initial_type:
                     continue
+                
+                # Swap X's with Empty spaces and vise versa
                 
                 x = self.square_size*column + self.get_board_x()
                 y = self.square_size*row + self.get_board_y()
@@ -178,16 +191,20 @@ class Capital:
                     continue
                 
                 # Left click: Add / remove capital
+                
                 if pygame.mouse.get_pressed()[0]:
                     self.marked_board[row][column] = 2 - self.marked_board[row][column]
                     continue
                 
                 # Right click: Add / remove X
+                
                 if pygame.mouse.get_pressed()[2]:
                     if self.marked_board[row][column] == 2:
                         return
                     self.initial_type = self.marked_board[row][column]
                     self.marked_board[row][column] = 1 - self.initial_type
+                
+                # Break loop since only one square can be hovered
                 
                 return
             
@@ -218,7 +235,8 @@ class Capital:
                 x = self.square_size*column
                 y = self.square_size*row
                 
-                # Draw space
+                # Draw square
+                
                 pygame.draw.rect(self.board_surf, palette.board_colors[self.board[row][column] - 1],
                                 (x, y, self.square_size, self.square_size))
                 
@@ -226,17 +244,27 @@ class Capital:
                               0 < self.mouse_pos[1] - self.get_board_y() - y < self.square_size)
                 
                 # Highlight if hovered
+                
                 if OVER_SPACE or self.success:
                     self.board_surf.blit(self.highlight, (x, y))
                 
                 # Draw border
+                
                 pygame.draw.rect(self.board_surf, palette.board_border,
                                 (x, y, self.square_size + 1, self.square_size + 1), 2)
                 
                 self.draw_space_elements(column, row, x, y)
 
 
-    def draw_space_elements(self, column: int, row: int, x: int, y: int) -> None:
+    def draw_space_elements(self, column: int, row: int) -> None:
+        """ Draw X's and Capital Squares within the board 'column' and 'row'.
+        """
+                
+        x = self.square_size*column
+        y = self.square_size*row
+        
+        # Draw X
+        
         if self.marked_board[row][column] == 1:
             pygame.draw.line(self.board_surf, palette.board_border,
                             (x + self.square_size/6, y + self.square_size/6),
@@ -248,6 +276,8 @@ class Capital:
             
         if self.marked_board[row][column] != 2:
             return
+        
+        # Draw Capital and validate capital
         
         if self.validate_space(column, row):
             self.valid = True
@@ -266,21 +296,24 @@ class Capital:
         capital on column and row: 'column' and 'row'.
         """
         
-        # Vertical
+        # Vertical: No capitals can be in the same column.
+        
         for i in range(len(self.board)):
             if i == row:
                 continue
             if self.marked_board[i][column] == 2:
                 return False
             
-        # Horizontal
+        # Horizontal: No capitals can be in the same row.
+        
         for i in range(len(self.board)):
             if i == column:
                 continue
             if self.marked_board[row][i] == 2:
                 return False
             
-        # Surrounding
+        # Surrounding: No capitals can be touching.
+        
         for r in [-1, 1]:
             if not (0 <= row + r < len(self.board)):
                 continue
@@ -290,7 +323,8 @@ class Capital:
                 if self.marked_board[row + r][column + c] == 2:
                     return False
             
-        # City
+        # City: No other capital can be in the same city (color)
+        
         for r in range(len(self.board)):
             if r == row:
                 continue
@@ -339,16 +373,22 @@ class Capital:
         """
         
         self.win.fill(palette.background)
-        self.win.blit(self.board_surf, ((Capital.WIDTH - Capital.BOARD_SIZE) / 2, (Capital.HEIGHT - Capital.BOARD_SIZE) / 2))
+        self.win.blit(self.board_surf, ((Capital.WIDTH - Capital.BOARD_SIZE) / 2,
+                                        (Capital.HEIGHT - Capital.BOARD_SIZE) / 2))
         
         
     def handle_success(self) -> None:
         """ Go to end screen if game is over.
         """
         
+        # Allow for a second frame to pass before changing screen
+            
         if self.success:
             self.screen = constants.END
             self.restart_delay = 1
+            
+        # End game if the board is filled and the capitals are in the right place
+            
         if self.valid and self.found_capitals == len(self.board):
             self.success = True
                 
