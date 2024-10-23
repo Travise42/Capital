@@ -35,7 +35,7 @@ class Capital:
         self.board = None
         self.marked_board = None
         self.initial_type = None
-        self.invalid = False
+        self.valid = False
         self.found_capitals = 0
         self.success = False
         self.restart_delay = 0
@@ -62,22 +62,12 @@ class Capital:
             # Handle drawing
             
             if self.screen == constants.HOME:
-                self.win.fill(palette.background)
-                pygame.draw.rect(self.win, palette.contrast, (250, 300, 500, 200), 0, 25)
-                
-                self.easy_button.draw(self.win)
-                self.medium_button.draw(self.win)
-                self.hard_button.draw(self.win)
+                self.draw_home_screen()
                 
             elif self.screen == constants.GAME:
-                self.win.fill(palette.background)
-                self.win.blit(self.board_surf, ((Capital.WIDTH - Capital.BOARD_SIZE) / 2, (Capital.HEIGHT - Capital.BOARD_SIZE) / 2))
+                self.draw_game_screen()
                 
-                if self.success:
-                    self.screen = constants.END
-                    self.restart_delay = 1
-                if not self.invalid and self.found_capitals == len(self.board):
-                    self.success = True
+                self.handle_success()
             
             # Refresh the screen
             
@@ -194,6 +184,8 @@ class Capital:
                 
                 # Right click: Add / remove X
                 if pygame.mouse.get_pressed()[2]:
+                    if self.marked_board[row][column] == 2:
+                        return
                     self.initial_type = self.marked_board[row][column]
                     self.marked_board[row][column] = 1 - self.initial_type
                 
@@ -218,7 +210,7 @@ class Capital:
         """ Draw all game elements on 'board_surf'.
         """
         
-        self.invalid = False
+        self.valid = False
         self.found_capitals = 0
         for row in range(len(self.board)):
             for column in range(len(self.board)):
@@ -237,9 +229,9 @@ class Capital:
                 if OVER_SPACE or self.success:
                     self.board_surf.blit(self.highlight, (x, y))
                 
-                # Draw boarder
+                # Draw border
                 pygame.draw.rect(self.board_surf, palette.board_border,
-                                (x, y, self.square_size, self.square_size), 2)
+                                (x, y, self.square_size + 1, self.square_size + 1), 2)
                 
                 self.draw_space_elements(column, row, x, y)
 
@@ -258,11 +250,11 @@ class Capital:
             return
         
         if self.validate_space(column, row):
-            self.invalid = True
-            color = palette.invalid
-        else:
-            self.found_capitals += 1
+            self.valid = True
             color = palette.success if self.success else palette.board_border
+            self.found_capitals += 1
+        else:
+            color = palette.invalid
         
         pygame.draw.rect(self.board_surf, color,
                          (x + self.square_size/6, y + self.square_size/6,
@@ -321,10 +313,34 @@ class Capital:
         self.board = None
         self.marked_board = None
         self.initial_type = None
-        self.invalid = False
+        self.valid = False
         self.found_capitals = 0
         self.success = False
         self.restart_delay = 0
+        
+        
+    def draw_home_screen(self) -> None:
+        self.win.fill(palette.background)
+        pygame.draw.rect(self.win, palette.contrast, (250, 300, 500, 200), 0, 25)
+        
+        self.easy_button.draw(self.win)
+        self.medium_button.draw(self.win)
+        self.hard_button.draw(self.win)
+        
+    
+    def draw_game_screen(self) -> None:
+        self.win.fill(palette.background)
+        self.win.blit(self.board_surf, ((Capital.WIDTH - Capital.BOARD_SIZE) / 2, (Capital.HEIGHT - Capital.BOARD_SIZE) / 2))
+        
+        
+    def handle_success(self) -> None:
+        if self.success:
+            self.screen = constants.END
+            self.restart_delay = 1
+        if self.valid and self.found_capitals == len(self.board):
+            self.success = True
+            
+            print(self.valid)
                 
 
 if __name__ == "__main__":
