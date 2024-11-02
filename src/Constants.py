@@ -4,3 +4,5 @@
 HOME = 0
 GAME = 1
 END = 2
+CUSTOM = 3
+WORKSHOP = 4
