@@ -102,7 +102,8 @@ def get_cities(board: list[list[int]]) -> list[list[tuple[int, int]]]:
     cities = [[] for city in range(len(board))]
     for row in range(len(board)):
         for column in range(len(board)):
-            cities[board[row][column] - 1].append((column, row))
+            if (0 < board[row][column] <= len(cities)):
+                cities[board[row][column] - 1].append((column, row))
         
     return cities
 
