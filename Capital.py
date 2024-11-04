@@ -538,7 +538,7 @@ class Capital:
                                               marginy + (button_size + pad)*row + pad, button_size, button_size))
             
             column += 1
-            if column > 6:
+            if column > 5 or (row == 0 and column > 4):
                 column = 0
                 row += 1
                 
