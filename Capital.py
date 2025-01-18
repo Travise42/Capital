@@ -31,6 +31,10 @@ class Capital:
         self.hard_button = Button("Hard", 600, 350, 100, 100)
         self.custom_button = Button("Custom", 400, 550, 200, 50)
         
+        self.custom_buttons = []
+        self.workshop_buttons = []
+        self.workshop_save_button = Button("Save", Capital.WIDTH - 250, 350, 150, 50)
+        
         # Initialize variables
         
         self.board_surf = pygame.Surface((Capital.BOARD_SIZE, Capital.BOARD_SIZE))
@@ -41,6 +45,12 @@ class Capital:
         self.found_capitals = 0
         self.success = False
         self.restart_delay = 0
+        self.screen = constants.HOME
+        self.font = pygame.font.SysFont("monospaced", 80)
+        self.workshop_city = 1
+        self.workshop_solutions = 0
+        
+        # Handle file for saved custom boards
         
         try:
             # Create custom-boards.json if it does not exist
@@ -54,17 +64,6 @@ class Capital:
                     self.custom_boards = json.load(file)
             except:
                 self.custom_boards = []
-            
-        self.custom_buttons = []
-        self.workshop_buttons = []
-        self.workshop_save_button = Button("Save", Capital.WIDTH - 250, 350, 150, 50)
-        
-        self.workshop_city = 1
-        self.workshop_solutions = 0
-        
-        self.screen = constants.HOME
-        
-        self.font = pygame.font.SysFont("monospaced", 80)
         
     def loop(self) -> None:
         """ Main loop for Capital.
@@ -192,7 +191,10 @@ class Capital:
                         self.create_custom_screen()
                     
                     elif self.workshop_buttons[0].pressed and len(self.board) > 5:
-                        self.board = [row[:-1] for row in self.board[:-1]]
+                        size = len(self.board)
+                        if self.workshop_city == size:
+                            self.workshop_city -= 1
+                        self.board = [[0 if size == square else square for square in row[:-1]] for row in self.board[:-1]]
                         self.create_workshop()
                         
                     elif self.workshop_buttons[-1].pressed and len(self.board) < 15:
